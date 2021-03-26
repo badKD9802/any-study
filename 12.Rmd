@@ -1,0 +1,100 @@
+---
+title: "tial"
+author: "KD BAE"
+date: '2021 3 23 '
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+1. Draw time series graph of sun spot. Do you see any cycle or seasonal effect?
+```{r spotplot}
+setwd("C:/Users/Rprogram/Desktop/KD time/time/file")
+spot <- read.csv('spot.csv',header = F)
+spot <- spot[-1,]
+spot <-as.numeric(spot)
+x<-1:length(spot)
+plot(spot,cex=0.05)
+lines(x,spot)
+```
+**Yes, I see any cycle or seasonal effect!**
+
+
+2. try 5-point moving average smoothing. Draw the plot of original graph in
+black, 5 point MA smoothing in red, mean value in blue.
+```{r}
+m5=filter(spot,filter=rep(1/5,5))
+plot(spot,main="5-point moving average",cex=0.05)
+lines(x,spot)
+lines(m5,col='red')
+abline(h=mean(spot),col="blue")
+```
+
+3. Check the residual plot, check the stationary and the test the independence
+assumption. Carefully interpret the residual analysis.
+```{r}
+library(forecast)
+res=m5[-c(1,2,99,100)]-spot[-c(1,2,99,100)]
+tsdisplay(res,main="Residuals by m5 for spot")
+tseries::kpss.test(m5)#h0= TS is stationary
+Box.test(res,type="Box-Pierce")#H0= TS is independent
+```
+**m5 is stationary because p-value not reject H0 in KPSS test **
+**,m5 is not independence because p-value reject H0 in Box-Pierce test**
+**,1st graph in tsdisplay haven't pattern**
+**and On the second and third graph, most of them are in the blue line.**
+
+4. Fit the simple exponential smoothing with alpha=0.1 and with the optimized
+alpha. If you think we need a trend, or seasonal, or both try them. Please
+address all the moeling and show how you find the best exponential smoothing
+model for spot data.
+```{r}
+h0=HoltWinters(spot,alpha=0.1,beta=F,gamma=F)
+h0
+h1=HoltWinters(spot,beta=F,gamma=F)
+h1
+
+spot1<-filter(spot,filter=rep(1/8,8))
+spot1<-spot1[-c(1,2,3,97,98,99,100)]
+h2=HoltWinters(spot1,alpha=0.1,beta=F,gamma=F)
+h2
+h3=HoltWinters(spot1,beta=F,gamma=F)
+h3
+
+par(mfrow=c(2,2))
+plot(h0)
+plot(h1)
+plot(h2)
+plot(h3)
+
+fa0=forecast(h0)
+fa1=forecast(h1)
+fa2=forecast(h2)
+fa3=forecast(h3)
+
+accuracy(fa1)
+accuracy(fa2)
+accuracy(fa3)
+accuracy(fa0)
+```
+In the spot graph, I judged that there is no trend but seasonal.
+So beta put F and T in gamma, but there was an error that there was no seasonality.
+h0,h2 is alpha=0.1
+h1,h3 is not alpha=0.1
+I put F in both beta and gamma and did 8 point smoothing to remove seasonality from h2,h3.
+The result is the same as above and the smallest value of RMSE between h0 and h3 is h3.
+
+5.From your best model, find the forecast of next 4 points.
+```{r}
+library(forecast)
+forecast(h3,h=4)
+spot_pred<-predict(h3,n.ahead=4)
+spot_pred
+plot(forecast(h3,h=4))
+```
