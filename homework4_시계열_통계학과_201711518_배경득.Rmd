@@ -1,0 +1,68 @@
+---
+title: "homework4"
+author: "KD BAE"
+date: '2021 4 15 '
+output:
+  word_document: default
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r ,message=FALSE}
+library(tidyverse)
+library(ggplot2)
+library(forecast)
+library(gridExtra)
+```
+
+```{r 1}
+## list description for AR(1) model with small coef
+## c(p,d,q) p: AR(P), q: MA(q) I(d)
+AR1_p0.8 <- list(order = c(1, 0, 0), ar = 0.8, sd = 1)
+## simulate AR(1)
+sim_AR1_p0.8 <- arima.sim(n = 1000, model = AR1_p0.8 )
+## get y-limits for common plots
+ylm <- c(min(sim_AR1_p0.8), max(sim_AR1_p0.8))
+## plot the ts
+plot.ts(sim_AR1_p0.8, ylim = ylm, ylab = expression(italic(x)[italic(t)]),
+        main = expression(paste(phi, " = 0.8")))
+#ACF PACF  p=0.8
+ggAcf(sim_AR1_p0.8)+ggtitle("ACF of AR(1) with phi=0.8")->p1
+ggPacf(sim_AR1_p0.8)+ggtitle("PACF of AR(1) with phi=0.8")->p2
+grid.arrange(p1,p2,nrow=2)
+
+
+```
+
+```{r 2}
+## list description for AR(1) model with small coef
+## c(p,d,q) p: AR(P), q: MA(q) I(d)
+AR1_m0.8 <- list(order = c(1, 0, 0), ar = -0.8, sd = 1)
+## simulate AR(1)
+sim_AR1_m0.8 <- arima.sim(n = 1000, model = AR1_m0.8)
+## get y-limits for common plots
+ylm <- c(min(sim_AR1_m0.8), max(sim_AR1_m0.8))
+## plot the ts
+plot.ts(sim_AR1_m0.8, ylim = ylm, ylab = expression(italic(x)[italic(t)]),
+        main = expression(paste(phi, " = -0.8")))
+
+#ACF PACF p=-0.8
+ggAcf(sim_AR1_m0.8)+ggtitle("ACF of AR(1) with phi=-0.8")->p3
+ggPacf(sim_AR1_m0.8)+ggtitle("PACF of AR(1) with phi=-0.8")->p4
+grid.arrange(p3,p4,nrow=2)
+```
+
+```{r}
+z1 <- arima.sim(n = 100, list(ar = c(0.13, 0.35)))
+plot_z1<-autoplot(z1)+ggtitle("AR(2) with phi1=0.13, phi2=0.35")
+plot_z1
+
+ggAcf(z1)+ggtitle("ACF and PACF ")->p1
+ggPacf(z1)+ggtitle(" AR(2) with phi1=0.13, phi2=0.35")->p2
+grid.arrange(p1,p2,ncol=2)
+```
