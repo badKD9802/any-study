@@ -1,0 +1,222 @@
+---
+title: "regression"
+author: "KD BAE"
+date: '2021 4 28 '
+output:
+  html_document:
+    df_print: paged
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r 1-1}
+setwd("C:/Users/Rprogram/Downloads/다변량1 실습3/Rdata")
+Data1.3.3<-read.table("protein.txt", header=T)
+X<-Data1.3.3[, -(1:2)]
+
+boxplot(X)
+
+```
+
+If you look at the boxplot, the mean and variance are different, so it is better to standardize the mean and variance equal rather than using centralization.
+
+```{r 1-2}
+X<-scale(as.matrix(Data1.3.3[, -(1:2)]))
+rownames(X)<-Data1.3.3[, 2]
+stars(X,key.loc=c(0,2), full = FALSE)
+
+```
+
+If you look at the sscatter plot, barplot and starplot, you can see that it is divided into groups with beef, pork, chicken, eggs, milk, and groups with grains, beans, nuts, starch, fruit, and vegetables.
+Between the two groups, Austria, Belgium-Luxem, Denmark, East Germany, Finland, France, Ireland, the Netherlands, Norway, Sweden, Switzerland, England, and West Germany are animal protein.
+Albania, Bulgaria, Romania, the Soviet Union, and Yugoslavia are vegetable proteins.
+
+```{r 1-3}
+XX <- Data1.3.3[, -(1:2)]
+X_cov <- cov(XX)
+X_cor <-cor(XX)
+sum(diag(X_cov))
+sum(diag(X_cor))
+det(X_cov)
+det(X_cor)
+```
+
+Det(S) is 1533720, which has a very large value, so there is a low probability of communication among the variables.
+Det(R) has a very low value of 0.003330005, so there is a high correlation between the variables.
+
+```{r 2-1}
+setwd("C:/Users/Rprogram/Downloads/다변량1 실습3/Rdata")
+iris <- read.table("irisflower.txt",header=T)
+X <- iris[,-1]
+
+plot(X[,1],X[,2],xlab="Sepal length",ylab="sepla Width")
+cor(X[,1],X[,2])
+```
+If you look at the scatterplot, it seems that the two variables are not related. When the correlation coefficient was obtained with R-code, -0.1175698, so it can be said that there is little correlation. 
+
+```{r 2-2}
+setwd("C:/Users/Rprogram/Downloads/다변량1 실습3/Rdata")
+iris<-read.table("irisflower.txt",header=T)
+X <- iris[,-1]
+plot(X[,1],X[,2],xlab="Sepal length",ylab="sepla Width",pch=as.numeric(as.factor(X$group)), col=as.factor(X$group))
+
+```
+
+The graph above has classified the types.
+black:setosa
+red:versicolor
+Green:verginica
+If you look at the graph, you can see that black is completely divided and red and green are mixed together. If we divide the groups, we should divide them into setsosa and (versicolor, verginica).
+
+```{r 2-3}
+setwd("C:/Users/Rprogram/Downloads/다변량1 실습3/Rdata")
+iris<-read.table("irisflower.txt",header=T)
+X <- iris[,-1]
+XX<-iris[,2:5]
+
+SandR<-array(NA,c(4,4,6))
+rownames(SandR)<-colnames(XX)
+colnames(SandR)<-colnames(XX)
+variation<-matrix(NA,3,4)
+rownames(variation)<-c("setosa","versicolor","virginica")
+colnames(variation)<-c("detS","trS", "detR","trR")
+
+for(i in 1:3) {
+  X<-XX[(50*(i-1)+1):(50*i),]
+  
+  S<-cov(X)
+  R<-cor(X)
+  
+  detS<-det(S)
+  detR<-det(R)
+  trS<-sum(diag(S))
+  trR<-sum(diag(R))
+  
+  SandR[,,i*2-1]<-S
+  SandR[,,i*2]<-R
+  
+  variation[i,1]<-detS
+  variation[i,2]<-trS
+  variation[i,3]<-detR
+  variation[i,4]<-trR
+}
+
+SandR<-round(SandR,3)
+variation<-round(variation,6)
+setosa<-list(SandR[,,1],SandR[,,2],variation[1,])
+versicolor<-list(SandR[,,3],SandR[,,4],variation[2,])
+virginica<-list(SandR[,,5],SandR[,,6],variation[3,])
+
+SandR
+variation
+setosa
+versicolor
+virginica
+
+```
+
+Generalized Variance of S is Verginica > Versicolor > Setosa. Therefore, we can interpret that the collinearity among Setosa is the highest, and Verginica is the lowest.
+
+Generalized Variance of R is Verginica < Versicolor < Setosa. Therefore, we can interpret that the correlation among Setosa is the highest, and Verginica is the lowest.
+
+```{r 3}
+setosa = iris[1:50, 1:4] # Iris data only for setosa and four variables
+versicolor = iris[51:100, 1:4] # Iris data only for versicolor and four variables
+virginica = iris[101:150, 1:4] # Iris data only for virginica and four variables
+
+library("MVN")
+
+
+par(mfrow=c(1,3))
+result_setosa = mvn(setosa, mvnTest = "mardia", multivariatePlot =  "qq")
+result_versicolor = mvn(versicolor, mvnTest = "mardia", multivariatePlot =  "qq")
+result_virginica = mvn(virginica, mvnTest = "mardia", multivariatePlot =  "qq")
+
+result_setosa
+result_versicolor
+result_virginica
+```
+
+If you look at the QQ-Plot, you can judge that the points are very close to a straight line, so they will follow normality.
+
+setosa:
+If you look at the Mardia Skewness test, you can't reject the null hypothesis (H0: following the multivariate normality) because the p-value is 0.177 which is greater than the significance level of 0.05, so the setosa follows the multivariate normality.
+
+versicolor:
+If you look at the Mardia Skewness test, you can't reject the null hypothesis (H0 (following multivariate normality) because the p-value is 0.536 which is greater than the 0.05 significance level, so vericolor follows multivariate normality.
+
+virginica:
+If you look at the Mardia Skewness test, you can't reject the null hypothesis (H0 (following multivariate normality) because the p-value is 0.3427, which is greater than the significance level of 0.05, so virginica follows multivariate normality.
+```{r 4}
+
+setwd("C:/Users/Rprogram/Downloads/다변량1 실습3/Rdata")
+Data1.3.5<-read.table("economicview.txt", header=T)
+X<-Data1.3.5[,-1]
+X<-as.matrix(Data1.3.5[,-1])
+
+n<-nrow(X)
+X_bar<-t(X)%*%matrix(1,n,1)/n # 평균벡터
+I<-diag(n)
+J<-matrix(1,n,n)
+H<-I-1/n*J                  # 중심화행렬
+Y<-H%*%X                 # 중심화 자료행렬
+S<-t(Y)%*%Y/(n-1)          # 공분산행렬 
+D<-diag(1/sqrt(diag(S)))     # 표준편차행렬의 역
+Z<-Y%*%D                # 표준화자료행렬
+colnames(Z)<-colnames(X)
+
+#4-1
+
+X<-Data1.3.5[,-1]
+X_bar ; cov(X); cor(X)
+
+
+```
+in the order above
+
+Average Vector
+
+Covariance matrix
+
+Correlation matrix
+
+```{r 4-2}
+X<-Data1.3.5[,-1]
+plot(X)
+
+X<-scale(as.matrix(X[, c(1,2,3,5)]))
+rownames(X)<-Data1.3.5[, 1]
+stars(X,key.loc=c(8,2), full = FALSE)
+parcoordlabel<-function(x, col = 1, lty = 1,  var.label=F,...) 
+{
+  rx <-lapply(X, range, na.rm = TRUE)
+  matplot(1L:ncol(x), t(x), type = "l", col = col, lty = 1:nrow(X), lwd=1.5,
+          xlab = "", ylab = "", axes = FALSE, 
+          ylim=c(-4, 4), xlim=c(1, nrow(X)), ...)
+  axis(1, at = 1L:ncol(x), labels = colnames(x))
+  legend("top", horiz=F, legend=colnames(X), lty=1:nrow(X), 
+         col=1, cex=0.8, lwd=1.5)
+  for (i in 1L:ncol(x))
+    invisible()
+}
+windows(height=5, width=12)
+parcoordlabel(t(X))
+
+```
+
+If you look at the multiple scatter plots above, the growth rate, GNP, and Suchur International Surplus are positively related.
+If the shape is large and the area is large, it has a large value from four perspectives, so it is optimistic about the economy and vice versa, it is pessimistic about the economy. In particular, the Bank of Korea, Daewoo Securities, Dongseo Securities, the Korea Chamber of Commerce, the Korea Federation of Small and Medium Business and Shinhan Research Institute are relatively optimistic about Korea's economy.
+A parallel coordinate plot is a plot that examines the clustering of objects and variables through a line arrangement plot for each of the four variables, as shown in the star plot. In particular, the Federation of Korean Industries, Samsung C&T, Daewoo Economic Research Institute, Dongseo Economic Research Institute, and Chung-Ang University have shown a noticeable decline, showing a pessimistic economic outlook. The movements of the four variables show very similar movements because they chose variables that are correlated to the economic outlook.
+
+```{r 4-3}
+de <- as.matrix(dist(X_bar, method="euclidean"))
+de <- as.dist(de)
+round(de, 3)
+```
+
+The Euclidean distance less than 10 is 성장률, 실업률, 소비물가, 임금상승, and these four variables are the same group.Also, 연말환율, 수입 range are about 10 different, so it can be said that they are in the same group. The rest are 50+ differences in distance, so we decided that it is a different group.
+
